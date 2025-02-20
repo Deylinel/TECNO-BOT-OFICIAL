@@ -1,4 +1,13 @@
 
+# Bienvenido al repositorio oficial de Kirito-Bot
+
+![Fuego](https://media.giphy.com/media/26gsvbQ7TImFLgdPA/giphy.gif)
+
+<img src="https://capsule-render.vercel.app/api?type=waving&color=0:ff5f6d,100:ffc3a0&height=200&section=header&text=Bienvenidos%20al%20repositorio%20oficial%20de%20Kirito-Bot&fontSize=40&fontColor=FFFFFF&animation=fadeIn&fontAlign=50&desc=Un%20bot%20con%20funciones%20interactivas%20y%20divertidas&descSize=20&descAlign=50" width="100%" />
+
+
+
+
 <!-- RAINBOW LINE BOT -->
 <img src="https://github.com/AnderMendoza/AnderMendoza/raw/main/assets/line-neon.gif" width="100%">
 
