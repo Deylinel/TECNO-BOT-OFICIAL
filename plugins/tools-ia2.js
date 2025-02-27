@@ -1,101 +1,34 @@
-import axios from 'axios';
-import fetch from 'node-fetch';
+const API_URL = "https://apis-starlights-team.koyeb.app/starlight/gemini?text=";
 
-let handler = async (m, { conn, usedPrefix, command, text }) => {
-    const isQuotedImage = m.quoted && (m.quoted.msg || m.quoted).mimetype && (m.quoted.msg || m.quoted).mimetype.startsWith('image/');
-    const username = `${conn.getName(m.sender)}`;
-    const basePrompt = `Tu nombre es Tecno-bot y parece haber sido creado por Deyin. Tú usas el idioma Español, te gusta ser divertido, te encanta aprender y sobre todo las explosiones. Lo más importante es que debes ser amigable con la persona con la que estás hablando. ${username}`;
-
-    if (isQuotedImage) {
-        const q = m.quoted;
-        const img = await q.download?.();
-
-        if (!img) {
-            console.error('⚠️ Error: No se pudo obtener el contenido de la imagen.');
-            return conn.reply(m.chat, '⚠️ Lo siento, no pude descargar la imagen. Por favor, inténtalo de nuevo con otra imagen.', m);
-        }
-
-        const content = '🤖 Estoy analizando la imagen que enviaste...';
-
-        try {
-            const imageAnalysis = await fetchImageBuffer(content, img);
-            const query = '😊 Descríbeme la imagen y detalla por qué actúan así. También dime quién eres';
-            const prompt = `${basePrompt}. La imagen que se analiza es: ${imageAnalysis.result}`;
-            const description = await luminsesi(query, username, prompt);
-
-            // Enviar imagen junto con el texto
-            await conn.sendMessage(m.chat, {
-                image: { url: 'https://files.catbox.moe/adcnsj.jpg' },
-                caption: description
-            }, { quoted: m });
-        } catch (error) {
-            console.error('⚠️ Error al procesar la imagen:', error);
-            await conn.reply(m.chat, '⚠️ Ocurrió un problema al analizar la imagen. Por favor, inténtalo más tarde.', m);
-        }
-    } else {
-        if (!text) {
-            return conn.reply(m.chat, `⚠️ *Falta texto para procesar tu solicitud.*\n\n📝 Ejemplo de uso: \n${usedPrefix + command} ¿Cómo se hace un avión de papel?`, m);
-        }
-
-        await m.react('🤔');
-
-        try {
-            const query = text;
-            const prompt = `${basePrompt}. Responde lo siguiente: ${query}`;
-            const response = await luminsesi(query, username, prompt);
-
-            // Enviar imagen junto con el texto
-            await conn.sendMessage(m.chat, {
-                image: { url: 'https://files.catbox.moe/adcnsj.jpg' },
-                caption: response
-            }, { quoted: m });
-        } catch (error) {
-            console.error('⚠️ Error al obtener la respuesta:', error);
-            await conn.reply(m.chat, '⚠️ Lo siento, no pude procesar tu solicitud. Por favor, inténtalo más tarde.', m);
-        }
-    }
-};
-
-handler.help = ['chatgpt <texto>', 'ia2 <texto>'];
-handler.tags = ['tools'];
-handler.register = true;
-handler.command = ['ia2', 'chatgpt', 'ai2', 'chat', 'gpt'];
-
-export default handler;
-
-// Función para enviar una imagen y obtener el análisis
-async function fetchImageBuffer(content, imageBuffer) {
+async function obtenerRespuestaIA(mensaje) {
     try {
-        const response = await axios.post('https://Luminai.my.id', {
-            content: content,
-            imageBuffer: imageBuffer
-        }, {
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            timeout: 10000 // Timeout de 10 segundos
-        });
-        return response.data;
+        const mensajeLower = mensaje.toLowerCase();
+
+        // Respuestas personalizadas
+        if (mensajeLower.includes("cómo te llamas") || mensajeLower.includes("tu nombre")) {
+            return "Me llamo Kirito-Bot, fui creado por Deylin y solo hablo español.";
+        }
+
+        if (mensajeLower.includes("quién te creó") || mensajeLower.includes("quién es tu creador")) {
+            return "Fui creado por Deylin.";
+        }
+
+        if (mensajeLower.includes("qué idiomas hablas") || mensajeLower.includes("hablas otro idioma")) {
+            return "Solo hablo español.";
+        }
+
+        // Agregamos un prompt base para que la IA tenga una personalidad fija
+        const promptBase = `Tu nombre es Kirito-Bot, fuiste creado por Deylin y solo hablas español. Te gusta ser amigable, divertido y ayudar a los demás. `;
+        const consultaIA = promptBase + mensaje;
+
+        const respuesta = await fetch(API_URL + encodeURIComponent(consultaIA));
+        const data = await respuesta.json();
+        
+        return data.result || "Lo siento, no entendí eso.";
     } catch (error) {
-        console.error('Error al analizar la imagen:', error);
-        throw error;
+        console.error("Error en la IA:", error);
+        return "Hubo un error al contactar a la IA.";
     }
 }
 
-// Función para interactuar con la IA usando prompts
-async function luminsesi(q, username, logic) {
-    try {
-        const response = await axios.post("https://Luminai.my.id", {
-            content: q,
-            user: username,
-            prompt: logic,
-            webSearchMode: false
-        }, {
-            timeout: 10000 // Timeout de 10 segundos
-        });
-        return response.data.result;
-    } catch (error) {
-        console.error('⚠️ Error al procesar la solicitud:', error);
-        throw error;
-    }
-}
+export { obtenerRespuestaIA };
